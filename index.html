@@ -1,0 +1,997 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Organic Product Label Generator</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            align-items: start;
+        }
+
+        .form-section {
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        }
+
+        .preview-section {
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            max-height: 800px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: 2.5rem;
+            color: #2d3748;
+            margin-bottom: 30px;
+            text-align: center;
+            grid-column: 1 / -1;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #4a5568;
+        }
+
+        input, textarea, select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        input:focus, textarea:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+            width: 100%;
+            margin-top: 20px;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+        }
+
+        .label-preview {
+            border: 2px dashed #cbd5e0;
+            border-radius: 15px;
+            padding: 20px;
+            background: #f8f9fa;
+            flex: 1;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .preview-header {
+            margin-bottom: 15px;
+            color: #2d5016;
+            flex-shrink: 0;
+        }
+
+        .preview-scroll-container {
+            flex: 1;
+            overflow-y: auto;
+            padding-right: 10px;
+            max-height: 600px;
+        }
+
+        .preview-scroll-container::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .preview-scroll-container::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+
+        .preview-scroll-container::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 10px;
+        }
+
+        .preview-scroll-container::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+
+        .single-label {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 350px;
+            height: 520px;
+            position: relative;
+            overflow: hidden;
+            display: grid;
+            grid-template-rows: auto auto auto 1fr auto auto;
+            gap: 6px;
+            page-break-after: always;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .print-container {
+            display: none;
+        }
+
+        @media print {
+            @page {
+                margin: 0.2in;
+                size: A4;
+            }
+            body * {
+                visibility: hidden;
+            }
+            .print-container, .print-container * {
+                visibility: visible;
+            }
+            .print-container {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+                display: block !important;
+            }
+            .single-label {
+                box-shadow: none;
+                border: 1px solid #000;
+                margin: 0.1in auto;
+                page-break-after: always;
+                height: auto;
+                min-height: 520px;
+            }
+        }
+
+        .brand-name {
+            font-family: 'Playfair Display', serif;
+            font-size: 24px;
+            font-weight: 700;
+            color: #2d5016;
+            text-align: center;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .product-name {
+            font-family: 'Playfair Display', serif;
+            font-size: 20px;
+            font-weight: 600;
+            color: #2d5016;
+            text-align: center;
+            margin-bottom: 15px;
+            font-style: italic;
+        }
+
+        .organic-badge {
+            background: linear-gradient(45deg, #48bb78, #38a169);
+            color: white;
+            padding: 6px 12px;
+            border-radius: 15px;
+            font-size: 11px;
+            font-weight: 600;
+            text-align: center;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+        }
+
+        .features {
+            text-align: center;
+            margin-bottom: 15px;
+            font-size: 12px;
+            color: #2d5016;
+            line-height: 1.6;
+        }
+
+        .net-weight {
+            background: #f0fff4;
+            border: 2px solid #48bb78;
+            padding: 10px;
+            text-align: center;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            font-weight: 600;
+            color: #2d5016;
+        }
+
+        .location {
+            text-align: center;
+            font-size: 11px;
+            color: #4a5568;
+            margin-bottom: 10px;
+        }
+
+        .qr-placeholder {
+            background: #f7fafc;
+            border: 2px dashed #cbd5e0;
+            height: 80px;
+            width: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 9px;
+            color: #718096;
+            border-radius: 6px;
+            margin: 0 auto;
+        }
+
+        .qr-image {
+            width: 80px;
+            height: 80px;
+            border-radius: 6px;
+            object-fit: cover;
+            display: block;
+            margin: 0 auto;
+        }
+
+        .middle-section {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 15px;
+            align-items: center;
+            margin: 10px 0;
+        }
+
+        .product-details {
+            font-size: 10px;
+            line-height: 1.3;
+        }
+
+        .details-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 8px;
+        }
+
+        .details-table td {
+            padding: 4px 6px;
+            font-size: 9px;
+            vertical-align: middle;
+        }
+
+        .details-table .detail-label {
+            font-weight: 600;
+            color: #2d5016;
+            width: 35%;
+            text-align: left;
+        }
+
+        .details-table .detail-value {
+            color: #4a5568;
+            background: #f8f9fa;
+            border: 1px solid #e2e8f0;
+            border-radius: 4px;
+            padding: 3px 6px;
+            font-weight: 500;
+        }
+
+        .ingredients-row {
+            margin-bottom: 8px;
+        }
+
+        .ingredients-label {
+            font-weight: 600;
+            color: #2d5016;
+            font-size: 9px;
+            margin-bottom: 2px;
+        }
+
+        .ingredients-value {
+            font-size: 9px;
+            color: #4a5568;
+            padding: 4px 6px;
+            background: #f8f9fa;
+            border: 1px solid #e2e8f0;
+            border-radius: 4px;
+            line-height: 1.2;
+        }
+
+        .bottom-section {
+            font-size: 8px;
+            color: #4a5568;
+            line-height: 1.3;
+            border-top: 1px solid #e2e8f0;
+            padding-top: 8px;
+        }
+
+        .back-label .info-section {
+            margin-bottom: 15px;
+        }
+
+        .info-label {
+            font-weight: 600;
+            color: #2d5016;
+            font-size: 11px;
+            margin-bottom: 3px;
+        }
+
+        .info-content {
+            font-size: 10px;
+            color: #4a5568;
+            line-height: 1.4;
+        }
+
+        .made-in {
+            position: absolute;
+            bottom: 15px;
+            right: 15px;
+            background: #2d5016;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-size: 10px;
+            font-weight: 600;
+        }
+
+        .print-button {
+            background: #48bb78;
+            margin-top: 10px;
+            flex-shrink: 0;
+        }
+
+        .quantity-info {
+            text-align: center;
+            color: #718096;
+            font-size: 14px;
+            margin-bottom: 10px;
+            padding: 10px;
+            background: #f0f4f8;
+            border-radius: 8px;
+            flex-shrink: 0;
+        }
+
+        @media print {
+            body {
+                background: white;
+                padding: 0;
+            }
+            .container {
+                display: block;
+            }
+            .form-section {
+                display: none;
+            }
+            .preview-section {
+                box-shadow: none;
+                padding: 0;
+            }
+            .label-preview {
+                border: none;
+                background: white;
+                padding: 0;
+            }
+            .print-button {
+                display: none;
+            }
+            h1 {
+                display: none;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                grid-template-columns: 1fr;
+            }
+            h1 {
+                font-size: 2rem;
+            }
+            .single-label {
+                width: 100%;
+                max-width: 350px;
+                margin: 0 auto 20px;
+                height: 520px;
+            }
+            .preview-section {
+                max-height: 70vh;
+            }
+            .preview-scroll-container {
+                max-height: calc(70vh - 200px);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🌿 Organic Product Label Generator</h1>
+        
+        <div class="form-section">
+            <h2 style="font-family: 'Playfair Display', serif; margin-bottom: 20px; color: #2d5016;">Product Information</h2>
+            
+            <div class="form-group">
+                <label for="brandName">Brand Name</label>
+                <input type="text" id="brandName" value="Shubha Sandhya Gallery" placeholder="Enter brand name">
+            </div>
+
+            <div class="form-group">
+                <label for="productName">Product Name</label>
+                <input type="text" id="productName" value="All Natural Turmeric Powder" placeholder="Enter product name">
+            </div>
+
+            <div class="form-group">
+                <label for="organicFeatures">Organic Features</label>
+                <textarea id="organicFeatures" placeholder="e.g., Grown using traditional, chemical-free methods">🌿 Grown using traditional, chemical-free methods
+🟡 No preservatives • No additives</textarea>
+            </div>
+
+            <div class="row">
+                <div class="form-group">
+                    <label for="netWeight">Net Weight</label>
+                    <input type="text" id="netWeight" value="100g" placeholder="e.g., 100g">
+                </div>
+                <div class="form-group">
+                    <label for="location">Location</label>
+                    <input type="text" id="location" value="Kalanki, Kathmandu, Nepal" placeholder="City, Country">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="ingredients">Ingredients</label>
+                <textarea id="ingredients" placeholder="List all ingredients">100% sun-dried turmeric root (Curcuma longa)</textarea>
+            </div>
+
+            <div class="row">
+                <div class="form-group">
+                    <label for="mfgDate">Manufacturing Date</label>
+                    <input type="date" id="mfgDate" value="2025-06-10">
+                </div>
+                <div class="form-group">
+                    <label for="bestBefore">Best Before Date</label>
+                    <input type="date" id="bestBefore" value="2026-06-10">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="batchNo">Batch Number</label>
+                <input type="text" id="batchNo" value="T0625-KK" placeholder="Enter batch number">
+            </div>
+
+            <div class="form-group">
+                <label for="storageInstructions">Storage Instructions</label>
+                <textarea id="storageInstructions" placeholder="Storage guidelines">Keep in a cool, dry place away from direct sunlight.</textarea>
+            </div>
+
+            <div class="form-group">
+                <label for="contactPhone">Contact Phone</label>
+                <input type="text" id="contactPhone" value="+977-98XXXXXXXX" placeholder="+977-98XXXXXXXX">
+            </div>
+
+            <div class="form-group">
+                <label for="contactEmail">Contact Email</label>
+                <input type="email" id="contactEmail" value="shubhasandhya@email.com" placeholder="contact@example.com">
+            </div>
+
+            <div class="form-group">
+                <label for="website">Website/Social Media</label>
+                <input type="text" id="website" placeholder="Optional website or social handle">
+            </div>
+
+            <div class="form-group">
+                <label for="qrCode">QR Code Image</label>
+                <input type="file" id="qrCode" accept="image/*">
+                <small style="color: #718096; font-size: 12px;">Upload QR code image (PNG, JPG, etc.)</small>
+            </div>
+
+            <div class="form-group">
+                <label for="labelQuantity">Number of Labels to Print</label>
+                <input type="number" id="labelQuantity" value="1" min="1" max="50" placeholder="Enter quantity">
+                <small style="color: #718096; font-size: 12px;">Batch numbers will increment automatically (max 50)</small>
+            </div>
+
+            <button onclick="updatePreview()">Update Preview</button>
+        </div>
+
+        <div class="preview-section">
+            <h2 style="font-family: 'Playfair Display', serif; margin-bottom: 20px; color: #2d5016; flex-shrink: 0;">Label Preview</h2>
+            
+            <div class="label-preview">
+                <h3 class="preview-header">Label Preview (<span id="previewCount">1</span> label<span id="previewPlural"></span>)</h3>
+                
+                <div id="quantityInfo" class="quantity-info" style="display: none;">
+                    Showing first 5 labels. All <span id="totalLabels">1</span> labels will be printed.
+                </div>
+                
+                <div class="preview-scroll-container">
+                    <div id="previewContainer">
+                        <div class="single-label" id="singleLabel">
+                            <!-- Header Section -->
+                            <div style="text-align: center;">
+                                <div class="brand-name" id="previewBrandName">Shubha Sandhya Gallery</div>
+                                <div class="product-name" id="previewProductName">All Natural Turmeric Powder</div>
+                                <div class="organic-badge">🌿 ALL NATURAL</div>
+                            </div>
+
+                            <!-- Features and Weight Section -->
+                            <div style="text-align: center;">
+                                <div class="features" id="previewFeatures">
+                                    🌿 Grown using traditional, chemical-free methods<br>
+                                    🟡 No preservatives • No additives
+                                </div>
+                                <div class="net-weight">
+                                    <strong>Net Weight: <span id="previewNetWeight">100g</span></strong>
+                                </div>
+                            </div>
+
+                            <!-- Middle Section with Details and QR -->
+                            <div class="middle-section">
+                                <div class="product-details">
+                                    <div class="ingredients-row">
+                                        <div class="ingredients-label">Ingredients:</div>
+                                        <div class="ingredients-value" id="previewIngredients">100% sun-dried turmeric root (Curcuma longa)</div>
+                                    </div>
+                                    
+                                    <table class="details-table">
+                                        <tr>
+                                            <td class="detail-label">Mfg Date:</td>
+                                            <td class="detail-value" id="previewMfgDate">2025-06-10</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="detail-label">Best Before:</td>
+                                            <td class="detail-value" id="previewBestBefore">2026-06-10</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="detail-label">Batch No:</td>
+                                            <td class="detail-value" id="previewBatchNo">T0625-KK</td>
+                                        </tr>
+                                    </table>
+                                </div>
+                                
+                                <div>
+                                    <div id="qrCodeContainer" class="qr-placeholder">
+                                        📦 Scan to<br>Buy Online
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Storage Instructions -->
+                            <div style="font-size: 9px; color: #4a5568; text-align: center; margin: 6px 0;">
+                                <strong>Storage:</strong> <span id="previewStorage">Keep in a cool, dry place away from direct sunlight.</span>
+                            </div>
+
+                            <!-- Bottom Section -->
+                            <div class="bottom-section">
+                                <div style="text-align: center; margin-bottom: 4px;">
+                                    <strong style="color: #2d5016; font-size: 10px;" id="previewProducer">Shubha Sandhya Gallery</strong><br>
+                                    <span style="font-size: 8px;">📍 <span id="previewProducerLocation">Kalanki, Kathmandu, Nepal</span></span>
+                                </div>
+                                <div style="text-align: center; font-size: 7px; line-height: 1.2;">
+                                    📞 <span id="previewPhone">+977-98XXXXXXXX</span><br>
+                                    ✉️ <span id="previewEmail">shubhasandhya@email.com</span><br>
+                                    <span id="previewWebsite"></span>
+                                </div>
+                                <div style="position: absolute; bottom: 8px; right: 15px; background: #2d5016; color: white; padding: 3px 8px; border-radius: 10px; font-size: 8px; font-weight: 600;">
+                                    Made In Nepal
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <button class="print-button" onclick="printLabels()">🖨️ Print Labels</button>
+        </div>
+        
+        <!-- Hidden print container -->
+        <div class="print-container" id="printContainer">
+        </div>
+    </div>
+
+    <script>
+        // Global variable to store QR code data
+        let qrCodeData = null;
+
+        function saveToLocalStorage() {
+            const formData = {
+                brandName: document.getElementById('brandName').value,
+                productName: document.getElementById('productName').value,
+                organicFeatures: document.getElementById('organicFeatures').value,
+                netWeight: document.getElementById('netWeight').value,
+                location: document.getElementById('location').value,
+                ingredients: document.getElementById('ingredients').value,
+                mfgDate: document.getElementById('mfgDate').value,
+                bestBefore: document.getElementById('bestBefore').value,
+                batchNo: document.getElementById('batchNo').value,
+                storageInstructions: document.getElementById('storageInstructions').value,
+                contactPhone: document.getElementById('contactPhone').value,
+                contactEmail: document.getElementById('contactEmail').value,
+                website: document.getElementById('website').value,
+                labelQuantity: document.getElementById('labelQuantity').value
+            };
+            
+            // Save to browser's memory (session storage alternative)
+            window.labelFormData = formData;
+        }
+
+        function loadFromLocalStorage() {
+            // Check if data exists in memory
+            const savedData = window.labelFormData;
+            if (savedData) {
+                Object.keys(savedData).forEach(key => {
+                    const element = document.getElementById(key);
+                    if (element) {
+                        element.value = savedData[key];
+                    }
+                });
+            } else {
+                // Set default values
+                setDefaultValues();
+            }
+        }
+
+        function setDefaultValues() {
+            // Set current date as manufacturing date
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('mfgDate').value = today;
+            
+            // Calculate best before date (1 year from today)
+            const nextYear = new Date();
+            nextYear.setFullYear(nextYear.getFullYear() + 1);
+            document.getElementById('bestBefore').value = nextYear.toISOString().split('T')[0];
+            
+            // Set other default values
+            document.getElementById('brandName').value = 'Shubha Sandhya Gallery';
+            document.getElementById('productName').value = 'All Natural Turmeric Powder';
+            document.getElementById('organicFeatures').value = '🌿 Grown using traditional, chemical-free methods\n🟡 No preservatives • No additives';
+            document.getElementById('netWeight').value = '100g';
+            document.getElementById('location').value = 'Kalanki, Kathmandu, Nepal';
+            document.getElementById('ingredients').value = '100% sun-dried turmeric root (Curcuma longa)';
+            document.getElementById('batchNo').value = 'T0625-KK';
+            document.getElementById('storageInstructions').value = 'Keep in a cool, dry place away from direct sunlight.';
+            document.getElementById('contactPhone').value = '+977-98XXXXXXXX';
+            document.getElementById('contactEmail').value = 'shubhasandhya@email.com';
+            document.getElementById('labelQuantity').value = '1';
+        }
+
+        function generateBatchNumber(baseBatch, increment) {
+            // Extract number from batch if it exists
+            const match = baseBatch.match(/^(.+?)(\d+)(.*)$/);
+            if (match) {
+                const prefix = match[1];
+                const number = parseInt(match[2]);
+                const suffix = match[3];
+                return prefix + String(number + increment).padStart(match[2].length, '0') + suffix;
+            } else {
+                // If no number found, append increment
+                return baseBatch + String(increment + 1).padStart(2, '0');
+            }
+        }
+
+        function createLabelHTML(batchNumber, qrCodeSrc) {
+            const brandName = document.getElementById('brandName').value;
+            const productName = document.getElementById('productName').value;
+            const organicFeatures = document.getElementById('organicFeatures').value.replace(/\n/g, '<br>');
+            const netWeight = document.getElementById('netWeight').value;
+            const ingredients = document.getElementById('ingredients').value;
+            const mfgDate = document.getElementById('mfgDate').value;
+            const bestBefore = document.getElementById('bestBefore').value;
+            const storageInstructions = document.getElementById('storageInstructions').value;
+            const location = document.getElementById('location').value;
+            const contactPhone = document.getElementById('contactPhone').value;
+            const contactEmail = document.getElementById('contactEmail').value;
+            const website = document.getElementById('website').value;
+            
+            const qrCodeHTML = qrCodeSrc ? 
+                `<img src="${qrCodeSrc}" alt="QR Code" class="qr-image">` : 
+                `📦 Scan to<br>Buy Online`;
+
+            return `
+                <div class="single-label">
+                    <!-- Header Section -->
+                    <div style="text-align: center;">
+                        <div class="brand-name">${brandName}</div>
+                        <div class="product-name">${productName}</div>
+                        <div class="organic-badge">🌿 ALL NATURAL</div>
+                    </div>
+
+                    <!-- Features and Weight Section -->
+                    <div style="text-align: center;">
+                        <div class="features">${organicFeatures}</div>
+                        <div class="net-weight">
+                            <strong>Net Weight: ${netWeight}</strong>
+                        </div>
+                    </div>
+
+                    <!-- Middle Section with Details and QR -->
+                    <div class="middle-section">
+                        <div class="product-details">
+                            <div class="ingredients-row">
+                                <div class="ingredients-label">Ingredients:</div>
+                                <div class="ingredients-value">${ingredients}</div>
+                            </div>
+                            
+                            <table class="details-table">
+                                <tr>
+                                    <td class="detail-label">Mfg Date:</td>
+                                    <td class="detail-value">${mfgDate}</td>
+                                </tr>
+                                <tr>
+                                    <td class="detail-label">Best Before:</td>
+                                    <td class="detail-value">${bestBefore}</td>
+                                </tr>
+                                <tr>
+                                    <td class="detail-label">Batch No:</td>
+                                    <td class="detail-value">${batchNumber}</td>
+                                </tr>
+                            </table>
+                        </div>
+                        
+                        <div>
+                            <div class="qr-placeholder">
+                                ${qrCodeHTML}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Storage Instructions -->
+                    <div style="font-size: 9px; color: #4a5568; text-align: center; margin: 6px 0;">
+                        <strong>Storage:</strong> ${storageInstructions}
+                    </div>
+
+                    <!-- Bottom Section -->
+                    <div class="bottom-section">
+                        <div style="text-align: center; margin-bottom: 4px;">
+                            <strong style="color: #2d5016; font-size: 10px;">${brandName}</strong><br>
+                            <span style="font-size: 8px;">📍 ${location}</span>
+                        </div>
+                        <div style="text-align: center; font-size: 7px; line-height: 1.2;">
+                            📞 ${contactPhone}<br>
+                            ✉️ ${contactEmail}<br>
+                            ${website ? `🌐 ${website}` : ''}
+                        </div>
+                        <div style="position: absolute; bottom: 8px; right: 15px; background: #2d5016; color: white; padding: 3px 8px; border-radius: 10px; font-size: 8px; font-weight: 600;">
+                            Made In Nepal
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function printLabels() {
+            // Save current form data before printing
+            saveToLocalStorage();
+            
+            const quantity = parseInt(document.getElementById('labelQuantity').value) || 1;
+            const baseBatch = document.getElementById('batchNo').value;
+            
+            const printContainer = document.getElementById('printContainer');
+            printContainer.innerHTML = '';
+            
+            for (let i = 0; i < quantity; i++) {
+                const batchNumber = generateBatchNumber(baseBatch, i);
+                printContainer.innerHTML += createLabelHTML(batchNumber, qrCodeData);
+            }
+            
+            window.print();
+        }
+
+        function handleQRUpload(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    qrCodeData = e.target.result;
+                    const qrContainer = document.getElementById('qrCodeContainer');
+                    qrContainer.innerHTML = `<img src="${qrCodeData}" alt="QR Code" class="qr-image">`;
+                    updatePreview(); // Update preview to show QR code in all labels
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function updatePreview() {
+            const quantity = parseInt(document.getElementById('labelQuantity').value) || 1;
+            const baseBatch = document.getElementById('batchNo').value;
+            
+            // Update preview count and plural
+            document.getElementById('previewCount').textContent = quantity;
+            document.getElementById('previewPlural').textContent = quantity > 1 ? 's' : '';
+            
+            const previewContainer = document.getElementById('previewContainer');
+            previewContainer.innerHTML = '';
+            
+            // Show maximum of 5 labels in preview to avoid performance issues
+            const previewLimit = Math.min(quantity, 5);
+            
+            // Show/hide quantity info
+            const quantityInfo = document.getElementById('quantityInfo');
+            const totalLabels = document.getElementById('totalLabels');
+            if (quantity > 5) {
+                quantityInfo.style.display = 'block';
+                totalLabels.textContent = quantity;
+            } else {
+                quantityInfo.style.display = 'none';
+            }
+            
+            for (let i = 0; i < previewLimit; i++) {
+                const batchNumber = generateBatchNumber(baseBatch, i);
+                const labelHTML = createPreviewLabelHTML(batchNumber, qrCodeData);
+                previewContainer.innerHTML += labelHTML;
+            }
+            
+            // Add message if there are more labels than shown
+            if (quantity > 5) {
+                previewContainer.innerHTML += `
+                    <div style="padding: 20px; text-align: center; color: #718096; font-style: italic; background: #f0f4f8; border-radius: 10px; margin-top: 10px;">
+                        ... and ${quantity - 5} more labels will be printed with continuing batch numbers
+                    </div>
+                `;
+            }
+        }
+
+        function createPreviewLabelHTML(batchNumber, qrCodeSrc) {
+            const brandName = document.getElementById('brandName').value;
+            const productName = document.getElementById('productName').value;
+            const organicFeatures = document.getElementById('organicFeatures').value.replace(/\n/g, '<br>');
+            const netWeight = document.getElementById('netWeight').value;
+            const ingredients = document.getElementById('ingredients').value;
+            const mfgDate = document.getElementById('mfgDate').value;
+            const bestBefore = document.getElementById('bestBefore').value;
+            const storageInstructions = document.getElementById('storageInstructions').value;
+            const location = document.getElementById('location').value;
+            const contactPhone = document.getElementById('contactPhone').value;
+            const contactEmail = document.getElementById('contactEmail').value;
+            const website = document.getElementById('website').value;
+            
+            const qrCodeHTML = qrCodeSrc ? 
+                `<img src="${qrCodeSrc}" alt="QR Code" class="qr-image">` : 
+                `📦 Scan to<br>Buy Online`;
+
+            return `
+                <div class="single-label">
+                    <!-- Header Section -->
+                    <div style="text-align: center;">
+                        <div class="brand-name">${brandName}</div>
+                        <div class="product-name">${productName}</div>
+                        <div class="organic-badge">🌿 ALL NATURAL</div>
+                    </div>
+
+                    <!-- Features and Weight Section -->
+                    <div style="text-align: center;">
+                        <div class="features">${organicFeatures}</div>
+                        <div class="net-weight">
+                            <strong>Net Weight: ${netWeight}</strong>
+                        </div>
+                    </div>
+
+                    <!-- Middle Section with Details and QR -->
+                    <div class="middle-section">
+                        <div class="product-details">
+                            <div class="ingredients-row">
+                                <div class="ingredients-label">Ingredients:</div>
+                                <div class="ingredients-value">${ingredients}</div>
+                            </div>
+                            
+                            <table class="details-table">
+                                <tr>
+                                    <td class="detail-label">Mfg Date:</td>
+                                    <td class="detail-value">${mfgDate}</td>
+                                </tr>
+                                <tr>
+                                    <td class="detail-label">Best Before:</td>
+                                    <td class="detail-value">${bestBefore}</td>
+                                </tr>
+                                <tr>
+                                    <td class="detail-label">Batch No:</td>
+                                    <td class="detail-value">${batchNumber}</td>
+                                </tr>
+                            </table>
+                        </div>
+                        
+                        <div>
+                            <div class="qr-placeholder">
+                                ${qrCodeHTML}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Storage Instructions -->
+                    <div style="font-size: 9px; color: #4a5568; text-align: center; margin: 6px 0;">
+                        <strong>Storage:</strong> ${storageInstructions}
+                    </div>
+
+                    <!-- Bottom Section -->
+                    <div class="bottom-section">
+                        <div style="text-align: center; margin-bottom: 4px;">
+                            <strong style="color: #2d5016; font-size: 10px;">${brandName}</strong><br>
+                            <span style="font-size: 8px;">📍 ${location}</span>
+                        </div>
+                        <div style="text-align: center; font-size: 7px; line-height: 1.2;">
+                            📞 ${contactPhone}<br>
+                            ✉️ ${contactEmail}<br>
+                            ${website ? `🌐 ${website}` : ''}
+                        </div>
+                        <div style="position: absolute; bottom: 8px; right: 15px; background: #2d5016; color: white; padding: 3px 8px; border-radius: 10px; font-size: 8px; font-weight: 600;">
+                            Made In Nepal
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Set up QR code file input event listener
+        document.getElementById('qrCode').addEventListener('change', handleQRUpload);
+
+        // Auto-update on input changes
+        document.addEventListener('input', updatePreview);
+        
+        // Initialize with saved or default values on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            loadFromLocalStorage();
+            updatePreview();
+        });
+        
+        // Initialize immediately if DOM is already loaded
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', function() {
+                loadFromLocalStorage();
+                updatePreview();
+            });
+        } else {
+            loadFromLocalStorage();
+            updatePreview();
+        }
+    </script>
+</body>
+</html>
